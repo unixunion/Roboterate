@@ -8,21 +8,28 @@ import flash.events.Event;
 
 class TestOsc extends Sprite
 {
-    private var vOsc:ui.Osc1;
+    private var vOsc1:ui.Osc1;
+    private var vOsc2:ui.Osc1;
 
     public function new ()
     {
 
         super ();
-        vOsc = new ui.Osc1(10,10,140);
-        addChild (vOsc);
+        vOsc1 = new ui.Osc1(10,10,200);
+        addChild (vOsc1);
+
+        vOsc2 = new ui.Osc1(10,220,200);
+        addChild (vOsc2);
+
+
         Lib.stage.addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
 
     }
 
     private function this_onEnterFrame (event:Event):Void
     {
-        vOsc.updateValue(Std.random(15));
+        vOsc1.updateValue(Math.random());
+        vOsc2.updateValue(Math.random()*-1);
     }
 
 }
