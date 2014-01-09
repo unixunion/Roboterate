@@ -16,20 +16,22 @@ class Osc1 extends Sprite
 {
     private static var bgColor:Int = 0x000000;
     private static var gridColor:Int = 0x888888;
-    private static var plotColor:Int = 0x78C5F5;
+    private static var plotColor:Int = 0xFF0000; //0x78C5F5;
+    private static var lineColor:Int = 0x78C5F5;
 
     private var screen:Bitmap;
     private var screenData:BitmapData;
     private var size:Int;
     private var oscValue:Float = 0;
     private var oscAmplitude:Float = 4;
-    private var scrollRate:Int = 1;
+    private var scrollRate:Int = -5;
+    private var curve:Bool;
 
     // store last plot variables
     private var lastOscValue:Float = 0;
     private var lastPlotPixel:Float = 0;
 
-    public function new(x:Int, y:Int, size:Int)
+    public function new(x:Int, y:Int, size:Int, ?curve:Bool=true, ?scrollRate=-5)
     {
 
         super();
@@ -37,6 +39,9 @@ class Osc1 extends Sprite
         this.oscAmplitude = size / 3;
         this.x = x;
         this.y = y;
+        this.curve = curve;
+        this.scrollRate = scrollRate;
+        lastPlotPixel = size/2;
 
         screen = new Bitmap();
         screenData = new BitmapData(size, size, false, bgColor);
@@ -58,6 +63,19 @@ class Osc1 extends Sprite
         //trace("updatevalue");
         lastOscValue = oscValue;
         oscValue = value;
+
+        // clamping to -1.0 and 1.0;
+        if ( value > 1.0 ) {
+            trace("clamping");
+            oscValue = 1.0;
+        }
+
+        if ( value < -1.0 ) {
+            trace("clamping");
+            oscValue = -1.0;
+        }
+
+
     }
 
     private function updateScreen():Void
@@ -85,7 +103,7 @@ class Osc1 extends Sprite
 //            oscAmplitude = 1 * oscAmplitude;
 //        }
 
-        screenData.scroll(-1 * scrollRate,0);
+        screenData.scroll( scrollRate,0);
         var plotPixel:Float;
 
         plotPixel = (size/2) - (oscAmplitude*this.oscValue);
@@ -101,15 +119,14 @@ class Osc1 extends Sprite
 //            trace("more than: " + this.oscValue + " pp: " + Std.int(plotPixel));
 //        }
 
-        // seems like the int conversion looses the sign
-        var newPlotPoint = new Point(Std.int(screenData.width)-2, Std.int(plotPixel));
+        var newPlotPoint = new Point(Std.int(screenData.width)+(scrollRate-2), Std.int(plotPixel));
 
         //var lastPlotPixel:Float = (size/2)-oscAmplitude +(oscAmplitude*this.lastOscValue);
-        var lastPlotPoint = new Point(Std.int(screenData.width)-3, Std.int(lastPlotPixel));
+        var lastPlotPoint = new Point(Std.int(screenData.width)+(scrollRate+scrollRate+-2), Std.int(lastPlotPixel));
         lastPlotPixel = plotPixel;
 
         // put the pixel on the rightmost column at correct height
-        screenData.setPixel32(size-2, Std.int(plotPixel), plotColor);
+//        screenData.setPixel32(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), plotColor);
         //screenData.setPixel(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), plotColor);
 
         // draw center line
@@ -121,19 +138,28 @@ class Osc1 extends Sprite
         // line between old point and new point
         var lineBmp:Bitmap = new Bitmap();
         lineBmp.bitmapData = new BitmapData(screenData.width, screenData.height, true, 0x00000000);
-        lineBmp.graphics.lineStyle(0.3, plotColor, 0.5, false, LineScaleMode.NONE);
-        //lineBmp.graphics.moveTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y));
+        lineBmp.graphics.lineStyle(3, lineColor, 1, false, LineScaleMode.NONE);
+        lineBmp.graphics.moveTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y));
 
-        lineBmp.graphics.moveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+        //lineBmp.graphics.moveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+        //lineBmp.graphics.curveTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), Std.int(screenData.width)+(scrollRate-2),  Std.int(lastPlotPoint.y));
+        //lineBmp.graphics.curveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lineBmp.width)+(scrollRate-2),  Std.int(newPlotPoint.y));
 
-        lineBmp.graphics.curveTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), Std.int(this.width)-2,  Std.int(lastPlotPoint.y));
-        lineBmp.graphics.curveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(this.width)-2,  Std.int(newPlotPoint.y));
-
+        if (curve == true) {
+        //if ( Std.int(lastPlotPoint.y) < Std.int(newPlotPoint.y) ) {
+            lineBmp.graphics.curveTo( Std.int(newPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+        //} else {
+            lineBmp.graphics.curveTo( Std.int(lastPlotPoint.x), Std.int(newPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+        //}
+        } else {
+            lineBmp.graphics.lineTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+        }
 
         //lineBmp.graphics.lineTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
 
         // Draw the lineBmp onto this one
         screenData.draw(lineBmp, new Matrix(), null, null, null, false);
+        screenData.setPixel32(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), plotColor);
 
 
     }
