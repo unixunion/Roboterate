@@ -3,7 +3,7 @@
 
     <meta title="Implantsout" package="com.deblox.implantsout" version="1.0.0" company="iogame" />
     <app main="tests.TestOsc" path="Export" file="testosc" />
-    <window width="852" height="480" fps="30" resizable="true" />
+    <window width="960" height="480" fps="30" resizable="true" />
     <source path="Source" />
 
     <haxelib name="openfl" />

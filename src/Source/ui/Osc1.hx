@@ -1,4 +1,6 @@
 package ui;
+import motion.Actuate;
+import flash.events.MouseEvent;
 import flash.geom.Matrix;
 import flash.display.BlendMode;
 import flash.geom.Point;
@@ -14,24 +16,37 @@ import flash.display.LineScaleMode;
 
 class Osc1 extends Sprite
 {
-    private static var bgColor:Int = 0x000000;
-    private static var gridColor:Int = 0x888888;
-    private static var plotColor:Int = 0xFF0000; //0x78C5F5;
-    private static var lineColor:Int = 0x78C5F5;
+    private static var bgColor:Int = 0x00FFFFFF;
+    private static var gridColor:Int = 0x55555555;
+    private static var plotColor:Int = 0x78C5F550; //0x78C5F5;
+    private static var lineColor:Int = 0x78C5F550;
 
     private var screen:Bitmap;
     private var screenData:BitmapData;
+    private var screenGrid:Bitmap;
+    private var screenGridData:BitmapData;
+
     private var size:Int;
     private var oscValue:Float = 0;
     private var oscAmplitude:Float = 4;
-    private var scrollRate:Int = -5;
+    private var scrollRate:Float;
+    private var speed:Int = 0;
+    private var lastSpeed:Int = 0;
     private var curve:Bool;
+    private var bars:Bool;
+    private var lastTick:Int = 0;
+    private var plotLineThickness:Int;
+    private var joinDots:Bool = true;
 
     // store last plot variables
     private var lastOscValue:Float = 0;
     private var lastPlotPixel:Float = 0;
 
-    public function new(x:Int, y:Int, size:Int, ?curve:Bool=true, ?scrollRate=-5)
+    // drag / drop stuff
+    private var dragOffsetX:Float;
+    private var dragOffsetY:Float;
+
+    public function new(x:Int, y:Int, size:Int, ?curve:Bool=true, ?scrollRate=-0.1, ?plotLineThickness=2, ?bars=false)
     {
 
         super();
@@ -41,22 +56,83 @@ class Osc1 extends Sprite
         this.y = y;
         this.curve = curve;
         this.scrollRate = scrollRate;
+        this.plotLineThickness = plotLineThickness;
+        this.bars = bars;
+
         lastPlotPixel = size/2;
 
         screen = new Bitmap();
-        screenData = new BitmapData(size, size, false, bgColor);
+        screenData = new BitmapData(size, size, true,  0x00000000 );
         screen.bitmapData = screenData;
 
+        screenGrid = new Bitmap();
+        screenGridData = new BitmapData(size, size, true,   0x55000000);
+        screenGrid.bitmapData = screenGridData;
+
+        // draw the grids lines
+        screenGrid.graphics.lineStyle(1, gridColor, 1, false, LineScaleMode.NONE);
+        screenGrid.graphics.moveTo(Std.int(screenGrid.width), Std.int(screenGrid.height/2));
+        screenGrid.graphics.lineTo(0, Std.int(screenGrid.height/2));
+        screenGrid.graphics.moveTo(Std.int(screenGrid.width), Std.int((screenGrid.height/2) - oscAmplitude));
+        screenGrid.graphics.lineTo(0, Std.int((screenGrid.width/2) - oscAmplitude) );
+        screenGrid.graphics.moveTo(Std.int(screenGrid.width), Std.int((screenGrid.height/2) + oscAmplitude));
+        screenGrid.graphics.lineTo(0, Std.int((screenGrid.width/2) + oscAmplitude) );
+
+        addChild(screenGrid);
         addChild(screen);
 
         Lib.stage.addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
+        addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
     }
 
+    private function this_onMouseDown (event:MouseEvent):Void {
+
+        stage.addEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
+        stage.addEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
+
+        dragOffsetX = this.x - event.stageX;
+        dragOffsetY = this.y - event.stageY;
+
+    }
+
+
+    private function stage_onMouseMove (event:MouseEvent):Void {
+
+        //Actuate.tween (this, 0.4
+        Actuate.tween (this, 0.4, { alpha: 1 });
+
+        var targetX = event.stageX + dragOffsetX;
+        var targetY = event.stageY + dragOffsetY;
+
+        this.x = this.x + (targetX - this.x) * 0.5;
+        this.y = this.y + (targetY - this.y) * 0.5;
+
+    }
+
+
+    private function stage_onMouseUp (event:MouseEvent):Void {
+
+        stage.removeEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
+        stage.removeEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
+
+    }
 
     private function this_onEnterFrame (event:Event):Void
     {
-        updateScreen();
+        var delta = Lib.getTimer() - lastTick;
+        lastTick = Lib.getTimer();
+        update(delta);
+        //updateScreen();
+
     }
+
+    function update(delta:Float){
+        lastSpeed = speed;
+        speed = Std.int(scrollRate * delta);
+        //trace("scrollRate: " + scrollRate +  " delta: " + delta + " speed: " + speed + " lastspeed: " + lastSpeed);
+
+    }
+
 
     public function updateValue(value:Float):Void
     {
@@ -75,6 +151,7 @@ class Osc1 extends Sprite
             oscValue = -1.0;
         }
 
+        updateScreen();
 
     }
 
@@ -103,7 +180,9 @@ class Osc1 extends Sprite
 //            oscAmplitude = 1 * oscAmplitude;
 //        }
 
-        screenData.scroll( scrollRate,0);
+        //speed = -1;
+        if ( speed == 0) { speed = -1; }
+        screenData.scroll(speed,0);
         var plotPixel:Float;
 
         plotPixel = (size/2) - (oscAmplitude*this.oscValue);
@@ -118,48 +197,73 @@ class Osc1 extends Sprite
 //            plotPixel = (size/2) + (oscAmplitude*this.oscValue);
 //            trace("more than: " + this.oscValue + " pp: " + Std.int(plotPixel));
 //        }
-
-        var newPlotPoint = new Point(Std.int(screenData.width)+(scrollRate-2), Std.int(plotPixel));
-
-        //var lastPlotPixel:Float = (size/2)-oscAmplitude +(oscAmplitude*this.lastOscValue);
-        var lastPlotPoint = new Point(Std.int(screenData.width)+(scrollRate+scrollRate+-2), Std.int(lastPlotPixel));
+        //trace(screenData.width);
+        var newPlotPoint = new Point(Std.int(screenData.width)+-size/10, Std.int(plotPixel));
+        var lastPlotPoint = new Point(Std.int(screenData.width)+(speed+-size/10), Std.int(lastPlotPixel));
         lastPlotPixel = plotPixel;
+
+        // clear the rightmost column with black pixels to cleanup corruption sometimes.
+//        screen.graphics.lineStyle(1, 0x000000, 1, false, LineScaleMode.NONE);
+//        screen.graphics.moveTo(Std.int(screenData.width)+-size/10-1, 0);
+//        screen.graphics.lineTo(Std.int(screenData.width)+-size/10-1, screen.height);
+
 
         // put the pixel on the rightmost column at correct height
 //        screenData.setPixel32(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), plotColor);
         //screenData.setPixel(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), plotColor);
 
         // draw center line
-        screenData.setPixel32(Std.int(this.width)-1, Std.int(this.height/2), gridColor);
-        screenData.setPixel32(Std.int(this.width)-1, Std.int((size/2) - oscAmplitude), gridColor);
-        screenData.setPixel32(Std.int(this.width)-1, Std.int((size/2) + oscAmplitude), gridColor);
+//        screen.graphics.lineStyle(0, gridColor, 0.1, true, LineScaleMode.NONE);
+//        screen.graphics.moveTo(Std.int(screen.width), Std.int(screen.height/2));
+//        screen.graphics.lineTo(0, Std.int(screen.height/2));
+//
+//        screen.graphics.moveTo(Std.int(screen.width), Std.int((screen.height/2) - oscAmplitude));
+//        screen.graphics.lineTo(0, Std.int((size/2) - oscAmplitude) );
+//
+//        screen.graphics.moveTo(Std.int(screen.width), Std.int((screen.height/2) + oscAmplitude));
+//        screen.graphics.lineTo(0, Std.int((size/2) + oscAmplitude) );
+
+        //screenData.setPixel32(Std.int(this.width)-1, Std.int(this.height/2), gridColor);
+//        screenData.setPixel32(Std.int(this.width)-1, Std.int((size/2) - oscAmplitude), gridColor);
+//        screenData.setPixel32(Std.int(this.width)-1, Std.int((size/2) + oscAmplitude), gridColor);
         //screenData.setPixel32(Std.int(this.width)-1, Std.int(this.height/4), gridColor);
 
         // line between old point and new point
-        var lineBmp:Bitmap = new Bitmap();
-        lineBmp.bitmapData = new BitmapData(screenData.width, screenData.height, true, 0x00000000);
-        lineBmp.graphics.lineStyle(3, lineColor, 1, false, LineScaleMode.NONE);
-        lineBmp.graphics.moveTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y));
 
-        //lineBmp.graphics.moveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
-        //lineBmp.graphics.curveTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), Std.int(screenData.width)+(scrollRate-2),  Std.int(lastPlotPoint.y));
-        //lineBmp.graphics.curveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lineBmp.width)+(scrollRate-2),  Std.int(newPlotPoint.y));
+        if (joinDots) {
 
-        if (curve == true) {
-        //if ( Std.int(lastPlotPoint.y) < Std.int(newPlotPoint.y) ) {
-            lineBmp.graphics.curveTo( Std.int(newPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
-        //} else {
-            lineBmp.graphics.curveTo( Std.int(lastPlotPoint.x), Std.int(newPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
-        //}
-        } else {
-            lineBmp.graphics.lineTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+            var lineBmp:Bitmap = new Bitmap();
+            lineBmp.bitmapData = new BitmapData(screenData.width, screenData.height, true, 0x00000000);
+    //        lineBmp.graphics.lineStyle(plotLineThickness, lineColor, 1, true, LineScaleMode.NONE);
+
+            lineBmp.graphics.moveTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+    //
+
+
+            if (curve == true) {
+                lineBmp.graphics.lineStyle(1, lineColor, 1, false, LineScaleMode.NONE);
+                lineBmp.graphics.curveTo( Std.int(newPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+                lineBmp.graphics.curveTo( Std.int(lastPlotPoint.x), Std.int(newPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+            } else if (curve == false && bars == false) {
+                lineBmp.graphics.lineStyle(1, lineColor, 1, false, LineScaleMode.NONE);
+                lineBmp.graphics.lineTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y));
+            } else {
+                lineBmp.graphics.lineStyle(-1*speed+1, lineColor, 1, false, LineScaleMode.NONE);
+                lineBmp.graphics.lineTo(lastPlotPoint.x, Std.int(lineBmp.height/2));
+            }
+
+            //lineBmp.graphics.lineTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+
+            // Draw the lineBmp onto this one
+            screenData.draw(lineBmp);
+            lineBmp.bitmapData.dispose();
+            lineBmp.bitmapData = null;
+            lineBmp = null;
         }
 
-        //lineBmp.graphics.lineTo(Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
-
-        // Draw the lineBmp onto this one
-        screenData.draw(lineBmp, new Matrix(), null, null, null, false);
         screenData.setPixel32(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y), plotColor);
+        //screenGrid.bitmapData.copyPixels(screenData);
+        //screenData.setPixels(new Rectangle(0,0))
 
 
     }
