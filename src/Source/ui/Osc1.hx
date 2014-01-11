@@ -1,5 +1,6 @@
 package ui;
 import motion.Actuate;
+import openfl.Assets;
 import flash.events.MouseEvent;
 import flash.geom.Matrix;
 import flash.display.BlendMode;
@@ -12,14 +13,22 @@ import flash.events.Event;
 import flash.Lib;
 import flash.display.LineScaleMode;
 
-// oscilloscope
+// oscilloscope, accepts inputs from -1 to +1 floats.
+//
+// parameters:
+//  x:Int position X
+//  y:Int position Y
+//  curve:Bool use beziers or not
+//  scrollRate:Float, value to scroll X axis on, default -0.1
+//  plotLineThickness: Int, the thickness of plotter lines, max 2 recommended.
+//  bars:Bool, draw bar lines down to the center axis!
 
 class Osc1 extends Sprite
 {
     private static var bgColor:Int = 0x00FFFFFF;
     private static var gridColor:Int = 0x55555555;
-    private static var plotColor:Int = 0x78C5F550; //0x78C5F5;
-    private static var lineColor:Int = 0x78C5F550;
+    private static var plotColor:Int = 0x20F75A; //0x78C5F5;
+    private static var lineColor:Int = 0x20F75A;
 
     private var screen:Bitmap;
     private var screenData:BitmapData;
@@ -65,10 +74,10 @@ class Osc1 extends Sprite
         screenData = new BitmapData(size, size, true,  0x00000000 );
         screen.bitmapData = screenData;
 
+        // pre render the grid lines as a second image to be placed behind the dynamic plotter.
         screenGrid = new Bitmap();
-        screenGridData = new BitmapData(size, size, true,   0x55000000);
+        screenGridData = new BitmapData(size, size, true,   0x99000000);
         screenGrid.bitmapData = screenGridData;
-
         // draw the grids lines
         screenGrid.graphics.lineStyle(1, gridColor, 1, false, LineScaleMode.NONE);
         screenGrid.graphics.moveTo(Std.int(screenGrid.width), Std.int(screenGrid.height/2));
@@ -78,8 +87,25 @@ class Osc1 extends Sprite
         screenGrid.graphics.moveTo(Std.int(screenGrid.width), Std.int((screenGrid.height/2) + oscAmplitude));
         screenGrid.graphics.lineTo(0, Std.int((screenGrid.width/2) + oscAmplitude) );
 
+        // load the bg image
+
+        var background = new Bitmap (Assets.getBitmapData("images/tv.png"));
+        background.width = size + size/2;
+        background.height = size + size/4;
+        background.x = background.x-size/8;
+        background.y = background.y-size/7;
+        addChild(background);
+
+        // add the grid and the plotter screen to the stage
         addChild(screenGrid);
         addChild(screen);
+
+        var foreground = new Bitmap (Assets.getBitmapData("images/tv-cover.png"));
+        foreground.width = size + size/2;
+        foreground.height = size + size/4;
+        foreground.x = foreground.x-size/8;
+        foreground.y = foreground.y-size/7;
+        addChild(foreground);
 
         Lib.stage.addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
         addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
@@ -241,11 +267,11 @@ class Osc1 extends Sprite
 
 
             if (curve == true) {
-                lineBmp.graphics.lineStyle(1, lineColor, 1, false, LineScaleMode.NONE);
-                lineBmp.graphics.curveTo( Std.int(newPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
-                lineBmp.graphics.curveTo( Std.int(lastPlotPoint.x), Std.int(newPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+                lineBmp.graphics.lineStyle(plotLineThickness, lineColor, 1, false, LineScaleMode.NONE);
+                //lineBmp.graphics.curveTo( Std.int(newPlotPoint.x), Std.int(lastPlotPoint.y), Std.int(lastPlotPoint.x), Std.int(lastPlotPoint.y));
+                lineBmp.graphics.curveTo( Std.int(lastPlotPoint.x), Std.int(newPlotPoint.y), Std.int(newPlotPoint.x), Std.int(newPlotPoint.y));
             } else if (curve == false && bars == false) {
-                lineBmp.graphics.lineStyle(1, lineColor, 1, false, LineScaleMode.NONE);
+                lineBmp.graphics.lineStyle(plotLineThickness, lineColor, 1, false, LineScaleMode.NONE);
                 lineBmp.graphics.lineTo(Std.int(newPlotPoint.x), Std.int(newPlotPoint.y));
             } else {
                 lineBmp.graphics.lineStyle(-1*speed+1, lineColor, 1, false, LineScaleMode.NONE);

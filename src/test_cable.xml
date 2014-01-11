@@ -2,7 +2,7 @@
 <project>
 
     <meta title="TestOsc1" package="com.deblox.implantsout" version="1.0.0" company="iogame" />
-    <app main="tests.TestOsc" path="Export" file="testosc" />
+    <app main="tests.TestCable" path="Export" file="testcable" />
     <window width="960" height="480" fps="30" resizable="true" />
     <source path="Source" />
 

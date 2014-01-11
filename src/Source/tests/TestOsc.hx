@@ -1,12 +1,11 @@
 package tests;
 
-// test only the osc
-
-import flash.display.Bitmap;
-import openfl.Assets;
+import flash.display.StageScaleMode;
+import flash.display.StageAlign;
 import flash.Lib;
 import flash.display.Sprite;
 import flash.events.Event;
+
 
 class TestOsc extends Sprite
 {
@@ -17,6 +16,7 @@ class TestOsc extends Sprite
     private var vOsc5:ui.Osc1;
     private var vOsc6:ui.Osc1;
     private var vOsc7:ui.Osc1;
+    private var cable1:ui.Cable;
 
     private var ipol:util.Interpolator;
 
@@ -26,21 +26,29 @@ class TestOsc extends Sprite
     private var inc:Float = 0.1;
     private var lastTick:Int = 0;
 
+    public static var gameWorld:util.GameWorld;
+
     public function new ()
     {
 
         super ();
 
-//        var background = new Bitmap (Assets.getBitmapData("images/bg-cogs.png"));
-//        addChild(background);
+        gameWorld = new util.GameWorld();
+        addChild(gameWorld);
 
-        vOsc1 = new ui.Osc1(10,10,200, false, -0.2);
+        Lib.current.stage.align = StageAlign.TOP_LEFT;
+        Lib.current.stage.scaleMode = StageScaleMode.NO_SCALE;
+
+        cable1 = new ui.Cable(100,100,gameWorld);
+        addChild(cable1);
+
+        vOsc1 = new ui.Osc1(10,10,120, false, -0.2);
         addChild (vOsc1);
 
-        vOsc2 = new ui.Osc1(10,220,200, false, -0.05);
+        vOsc2 = new ui.Osc1(10,220,200, true, -0.05);
         addChild (vOsc2);
 
-        vOsc3 = new ui.Osc1(220,10,200, false, -0.05);
+        vOsc3 = new ui.Osc1(220,10,200, false, -0.1);
         addChild (vOsc3);
 
         vOsc4 = new ui.Osc1(220,220,40, false, -0.05, 1);
