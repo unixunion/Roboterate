@@ -20,7 +20,7 @@ import box2D.dynamics.B2World;
 class GameWorld extends Sprite {
     public static var PHYSICS_SCALE:Float = 1 / 30;
     public static var PHYSICS_SCALER:Float = 30;
-    public static var World:B2World = new B2World (new B2Vec2 (0.1, 1), true);
+    public static var World:B2World = new B2World (new B2Vec2 (0, 1), true);
     private var PhysicsDebug:Sprite;
 
     public function new() {

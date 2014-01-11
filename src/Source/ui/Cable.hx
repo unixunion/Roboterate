@@ -2,6 +2,10 @@ package ui;
 
 
 // a physics cable, hopefully.
+import box2D.dynamics.joints.B2PulleyJointDef;
+import box2D.dynamics.joints.B2RevoluteJointDef;
+import box2D.common.math.B2Transform;
+import flash.Lib;
 import tests.TestCable;
 import flash.display.BitmapData;
 import util.GameWorld;
@@ -33,130 +37,101 @@ class Cable extends Sprite {
     private var dragOffsetX:Float;
 
     private var segmentBmp:Bitmap;
+    private var plugBmp1:Bitmap;
+    private var plugBmp2:Bitmap;
     private var segments:Array<CableSegment>;
     private var World:B2World;
 
     // cable defaults
-    private var length:Int = 5;
+    private var length:Int;
+    private var thickness:Int;
 
-    public function new (x:Int, y:Int) {
+    public function new (x:Int, y:Int, ?thickness:Int=5, ?length:Int=10) {
 
         super ();
-//        this.x = x;
-//        this.y = y;
+        this.x=x;
+        this.y=y;
+
         this.World = util.GameWorld.World;
         trace("got world: " + World);
+
+        this.thickness = thickness;
+        this.length = length;
 
         initialize();
         construct();
 
 
-        //GameWorld = new B2World (new B2Vec2 (0, 0), true);
-
-//        PhysicsDebug = new Sprite ();
-//        addChild (PhysicsDebug);
-//
-//        var debugDraw = new B2DebugDraw ();
-//        debugDraw.setSprite (PhysicsDebug);
-//        debugDraw.setDrawScale (1 / PHYSICS_SCALE);
-//        debugDraw.setFlags (B2DebugDraw.e_shapeBit);
-//
-//        GameWorld.setDebugDraw (debugDraw);
-
-
-        //createCable(600,10,15);
-
         addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
+
 
     }
 
     private function initialize() {
         // the bmp we will clone for cable links
         segmentBmp = new Bitmap (Assets.getBitmapData("images/reddot.png"));
+        plugBmp1 = new Bitmap (Assets.getBitmapData("images/plug.png"));
+        plugBmp1.width=15;
+        plugBmp1.height=15;
+        addChild(plugBmp1);
+        addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
     }
 
     private function construct() {
         segments = new Array<CableSegment>();
-        for( i in 0...length ) {
-            var cable = new CableSegment(this.x + (4*i), this.y + (25*i), this.World, segmentBmp);
+        var cable = new CableSegment(this.x, this.y  + (this.thickness), this.World, segmentBmp, this.thickness, 1.0, true);
+        addChild(cable);
+        segments.push(cable);
+
+        var lastSegment:CableSegment = cable;
+        trace("lastSegment: " +lastSegment);
+
+
+        // rest of cable
+        for( i in 1...this.length+1 ) {
+            var cable = new CableSegment(this.x, this.y  + (this.thickness * i), this.World, segmentBmp, this.thickness, 1);
             segments.push(cable);
-            addChild(cable);
-
-//            var spriteData:BitmapData = segmentBmp.bitmapData.clone();
-//            var sprite:Bitmap = new Bitmap();
-//            sprite.bitmapData = spriteData;
-//            sprite.x = this.x;
-//            sprite.y = this.y + (25*i);
-
-           // addChild(sprite);
-            //cable.body.setUserData(segmentBmp);
-
+            Lib.current.stage.addChild(cable);
+            createJoint(lastSegment.body, cable.body);
+            lastSegment = cable;
+//            trace(this.World.getJointList());
         }
+
+        var cable = new CableSegment(this.x, this.y  + (this.thickness * this.length+1), this.World, segmentBmp, this.thickness, 12.0);
+        addChild(cable);
+        segments.push(cable);
+        createJoint(lastSegment.body, cable.body);
+
 
         trace(segments);
 
-        for (i in 1...segments.length) {
-            trace("joining " + segments[i-1].body + " and " + segments[i].body + " center " + segments[i-1].body.getWorldCenter());
-            var joint = new B2DistanceJointDef();
-            joint.initialize(segments[i-1].body, segments[i].body, new B2Vec2(0,0), new B2Vec2(0,0));
-            joint.collideConnected = true;
-            trace(joint);
-        }
+//        for (i in 1...segments.length) {
+//            trace("joining " + segments[i-1].body + " and " + segments[i].body + " center " + segments[i-1].body.getWorldCenter());
+//            var joint = new B2DistanceJointDef();
+//            joint.initialize(segments[i-1].body, segments[i].body, new B2Vec2(0,0), new B2Vec2(0,0));
+//            joint.collideConnected = false;
+//            trace(joint);
+//        }
+
 
 
     }
 
-//    private function createCable (x:Float, y:Float, ?length:Int=5, ?segmentWidth:Int=4, ?segmentHeight:Int=20) {
-//        // create a bunch of polygon shapes and tie them together to get some rope like thing working.
-//        segments = new Array<B2Body>();
-//
-//
-//
-//        for( i in 0...length ) {
-//            // create the bodyDef
-//
-//            var bodyDefinition = new B2BodyDef ();
-//            bodyDefinition.type = B2Body.b2_dynamicBody;
-//            bodyDefinition.position.set (x * PHYSICS_SCALE, (i * y * PHYSICS_SCALE ));
-//
-//            // create the poly
-//            var polygon = new B2PolygonShape ();
-//            polygon.setAsBox ((segmentWidth / 2) * PHYSICS_SCALE, (segmentHeight / 2) * PHYSICS_SCALE);
-//
-//            // create the fixture
-//            var fixtureDefinition = new B2FixtureDef ();
-//            fixtureDefinition.shape = polygon;
-//            //fixtureDefinition.setAsBox ((segmentWidth / 2) * PHYSICS_SCALE, (segmentHeight / 2) * PHYSICS_SCALE);
-//
-//            // add the body to the world
-//            var body = gameWorld.World.createBody (bodyDefinition);
-//            body.createFixture (fixtureDefinition);
-//
-//            var l:Int = segments.push(body);
-//            trace(i + ": inserted at pos: " + l);
-//
-//            if (i>0) {
-//                // make joints
-//                var joint = new B2DistanceJointDef();
-//                joint.initialize(segments[i-1], segments[i], new B2Vec2(0,0), new B2Vec2(0,0));
-//                joint.collideConnected = true;
-//                trace(joint);
-//            }
-//
-//        }
-//
-//        for (i in segments.iterator() )
-//        {
-//            //trace(segments[1].getJointList());
-//            cableSegment = new Bitmap (Assets.getBitmapData("images/reddot.png"));
-//            addChild(cableSegment);
-//            i.setUserData(cableSegment);
-//            cableSegment.addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
-//        }
-//
-//        //trace(segments[1].m_jointList);
-//
-//    }
+    private function createJoint(bodyA:B2Body, bodyB:B2Body ) {
+        trace("joining " + bodyA + " and " + bodyB);
+        var joint = new B2DistanceJointDef();
+//            joint.frequencyHz = 15.0;
+//            joint.dampingRatio = 1.0;
+        joint.initialize(bodyA, bodyB, new B2Vec2(0,-1), new B2Vec2(0,1));
+        joint.collideConnected = false;
+        var joint = new B2RevoluteJointDef();
+        joint.initialize(bodyA, bodyB, new B2Vec2(0,0));
+
+//        joint.lowerAngle = -2 * 3.14159265359; // -180 degrees
+//        joint.upperAngle = 2 * 3.14159265359; // 180 degrees
+        joint.enableLimit = false;
+        this.World.createJoint(joint);
+    }
 
 
     private function this_onMouseDown (event:MouseEvent):Void {
@@ -201,17 +176,34 @@ class Cable extends Sprite {
         this.World.clearForces ();
         this.World.drawDebugData ();
 
+        var pforce = 128;
+        segments[0].body.applyForce(new B2Vec2( (this.x - (segments[0].body.getPosition().x * util.GameWorld.PHYSICS_SCALER)) * pforce , (this.y + this.height - (segments[0].body.getPosition().y * util.GameWorld.PHYSICS_SCALER))*pforce), new B2Vec2(0,0));
+
+
         //b2BodyElements is my array of bodies
-        for (myBody in segments.iterator())
+        for (i in 0...segments.length )
         {
-        //If the body has an attached Sprite
-            //trace(cast(myBody.getUserData(), Bitmap));
+
+            var myBody = segments[i];
+
+//            This makes the body follow the parent body in the chain, though poorly.
+//            if (i>1) {
+//                var pforce = 1;
+//                var x1 = segments[i-1].body.getPosition().x * util.GameWorld.PHYSICS_SCALER;
+//                var y1 = segments[i-1].body.getPosition().y * util.GameWorld.PHYSICS_SCALER;
+//
+//                var x2 = segments[i].body.getPosition().x * util.GameWorld.PHYSICS_SCALER;
+//                var y2 = segments[i].body.getPosition().y * util.GameWorld.PHYSICS_SCALER;
+//
+//                segments[i].body.applyForce(new B2Vec2((x1-x2) * pforce , (y1-y2)*pforce), new B2Vec2(0,0));
+//            }
+
             if(myBody.body.getUserData() != null && Std.is(cast(myBody.body.getUserData(), Bitmap), Bitmap))
             {
                 //Sets the x, y, and rotation of the sprite
 
-                myBody.body.getUserData().x = myBody.body.getPosition().x * util.GameWorld.PHYSICS_SCALER;
-                myBody.body.getUserData().y = myBody.body.getPosition().y * util.GameWorld.PHYSICS_SCALER;
+                myBody.body.getUserData().x = myBody.body.getPosition().x * util.GameWorld.PHYSICS_SCALER - (this.thickness*2);
+                myBody.body.getUserData().y = myBody.body.getPosition().y * util.GameWorld.PHYSICS_SCALER - (this.thickness*2);
                 myBody.body.getUserData().rotation = myBody.body.getAngle();
 
                 //trace("myBody.getUserData().x " + myBody.body.getUserData().x + " bodypos: " + myBody.body.getPosition().x * gameGameWorld.PHYSICS_SCALER);

@@ -1,5 +1,6 @@
 package ui;
 
+import flash.Lib;
 import tests.TestCable;
 import flash.display.BitmapData;
 import util.GameWorld;
@@ -34,23 +35,32 @@ class CableSegment extends Sprite {
 
     private static var segmentWidth:Int = 4;
     private static var segmentHeight:Int = 20;
+    private var thickness:Int;
+    private var linearDamping:Float;
 
     public var body:B2Body; // out publically accessable part
     public var spriteData:BitmapData;
     public var sprite:Bitmap;
+    private var moveListener:Bool;
 
-    public function new(x:Float, y:Float, world:B2World, image:Bitmap) {
+    public function new(x:Float, y:Float, world:B2World, image:Bitmap, ?thickness:Int=15, ?linearDamping:Float=12.0, ?moveListener:Bool=false) {
         super();
         this.x = x;
         this.y = y;
+        this.thickness = thickness;
+        this.linearDamping = linearDamping;
+        this.moveListener = moveListener;
+
         gameWorld = world;
         trace("got world: " + gameWorld);
         //sprite = image;
-//        spriteData = image.bitmapData.clone();
-//        sprite = new Bitmap();
-//        sprite.bitmapData = spriteData;
-        sprite = new Bitmap(Assets.getBitmapData("images/reddot.png"));
-        addChild(sprite);
+        spriteData = image.bitmapData.clone();
+        sprite = new Bitmap();
+        sprite.bitmapData = spriteData;
+        sprite.width = thickness*4;
+        sprite.height = thickness*4;
+        //sprite = new Bitmap(Assets.getBitmapData("images/reddot.png"));
+        //Lib.current.stage.addChild(sprite);
         initialize();
         construct();
     }
@@ -58,8 +68,8 @@ class CableSegment extends Sprite {
     private function initialize(){
 //        sprite.x = -100;
 //        sprite.y = -100;
-        sprite.x = x/util.GameWorld.PHYSICS_SCALER;
-        sprite.y = y/util.GameWorld.PHYSICS_SCALER;
+        //sprite.x = x/util.GameWorld.PHYSICS_SCALER;
+        //sprite.y = y/util.GameWorld.PHYSICS_SCALER;
         trace("init segment: x " + x + " y " + y);
         trace("calculated box X: " + (x * util.GameWorld.PHYSICS_SCALE) + " Y: " + ( y * util.GameWorld.PHYSICS_SCALE));
         trace("sprite x: " + sprite.x + " y " + sprite.y);
@@ -75,14 +85,21 @@ class CableSegment extends Sprite {
         var bodyDefinition = new B2BodyDef ();
         bodyDefinition.type = B2Body.b2_dynamicBody;
         bodyDefinition.position.set (x * util.GameWorld.PHYSICS_SCALE, y * util.GameWorld.PHYSICS_SCALE );
+        bodyDefinition.angularDamping = 1;
+        bodyDefinition.linearDamping = this.linearDamping;
 
         // create the poly
-        var polygon = new B2PolygonShape ();
-        polygon.setAsBox ((segmentWidth / 2) * util.GameWorld.PHYSICS_SCALE, (segmentHeight / 2) * util.GameWorld.PHYSICS_SCALE);
+//        var polygon = new B2PolygonShape ();
+//        polygon.setAsBox ((segmentWidth / 2) * util.GameWorld.PHYSICS_SCALE, (segmentHeight / 2) * util.GameWorld.PHYSICS_SCALE);
+
+        var circle = new B2CircleShape (this.thickness * util.GameWorld.PHYSICS_SCALE);
+
+        //circle.m_p.set(x * util.GameWorld.PHYSICS_SCALE, y * util.GameWorld.PHYSICS_SCALE);
 
         // create the fixture
         var fixtureDefinition = new B2FixtureDef ();
-        fixtureDefinition.shape = polygon;
+        fixtureDefinition.shape = circle;
+        fixtureDefinition.density=0;
         //fixtureDefinition.setAsBox ((segmentWidth / 2) * PHYSICS_SCALE, (segmentHeight / 2) * PHYSICS_SCALE);
 
         // add the body to the world
@@ -91,10 +108,12 @@ class CableSegment extends Sprite {
 
         // add the sprite
 
-
-
         body.setUserData(sprite);
-        addChild(sprite);
+        //sprite.addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
+        Lib.current.stage.addChild(sprite);
+        //addChild(sprite);
+
+
 
     }
 
