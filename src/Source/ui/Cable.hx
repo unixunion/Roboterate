@@ -2,6 +2,7 @@ package ui;
 
 
 // a physics cable, hopefully.
+import flash.display.Stage;
 import box2D.dynamics.B2DebugDraw;
 import util.GameManager;
 import flash.display.DisplayObject;
@@ -70,28 +71,22 @@ class Cable extends Sprite {
         plugBmp1 = new Bitmap (Assets.getBitmapData("images/plug.png"));
         plugBmp1.width=30;
         plugBmp1.height=30;
-        addChild(plugBmp1);
+//        addChild(plugBmp1);
 
 
-        plugBmp2 = new Bitmap (Assets.getBitmapData("images/plug.png"));
-        plugBmp2.width=30;
-        plugBmp2.height=30;
-        plugBmp2.x = x+100;
-        plugBmp2.y = y+100;
-        addChild(plugBmp2);
 
 //        trace("cable1.this.x: " + this.x + " cable1.this.y: " + this.y);
 //        trace("plugBmp1.x: " + plugBmp1.x + " plugBmp1.y: " + plugBmp1.y);
 
         // the listener for mousemove on the connector for some magical reason
-        addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
+        //addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
     }
 
     private function construct() {
         // 1st segment with slightly different behavior ( innertia )
         segments = new Array<CableSegment>();
-        var cable = new CableSegment(this.x, this.y  + (this.thickness), this.World, plugBmp1, this.thickness, 12.0, true);
-        addChild(cable);
+        var cable = new CableSegment(this.x, this.y  + (this.thickness), this.World, plugBmp1, this.thickness, 0, true);
+        Lib.current.stage.addChild(cable);
         segments.push(cable);
         cable.addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
 
@@ -100,7 +95,7 @@ class Cable extends Sprite {
 
         // rest of cable segments
         for( i in 1...this.length+1 ) {
-            var cable = new CableSegment(this.x, this.y  + (this.thickness * i), this.World, segmentBmp, this.thickness, 1);
+            var cable = new CableSegment(this.x, this.y  + (this.thickness * i), this.World, segmentBmp, this.thickness, 5);
             segments.push(cable);
 //            Lib.current.stage.addChild(cable);
             addChild(cable);
@@ -109,8 +104,8 @@ class Cable extends Sprite {
         }
 
         // a final segment which coule have different behavior also, like innertia.
-        var cable = new CableSegment(this.x, this.y  + (this.thickness * this.length+1), this.World, segmentBmp, this.thickness, 1.0);
-        addChild(cable);
+        var cable = new CableSegment(this.x, this.y  + (this.thickness * this.length+1), this.World, plugBmp1, this.thickness, 0, true);
+        Lib.current.stage.addChild(cable);
         segments.push(cable);
         createJoint(lastSegment.body, cable.body);
 
@@ -118,14 +113,18 @@ class Cable extends Sprite {
 
     private function createJoint(bodyA:B2Body, bodyB:B2Body ) {
         // creates a joint between two segments at the appropriate coordinates
-        trace("joining " + bodyA + " and " + bodyB);
+//        trace("joining " + bodyA + " and " + bodyB);
+    if ( bodyA != null && bodyB != null) {
         var joint = new B2DistanceJointDef();
-        joint.initialize(bodyA, bodyB, new B2Vec2(0,-1), new B2Vec2(0,1));
-        joint.collideConnected = false;
+//        joint.initialize(bodyA, bodyB, new B2Vec2(0,-1), new B2Vec2(0,1));
+//        joint.collideConnected = false;
         var joint = new B2RevoluteJointDef();
         joint.initialize(bodyA, bodyB, new B2Vec2(0,0));
         joint.enableLimit = false;
         this.World.createJoint(joint);
+    } else {
+        trace("one of the bodies is null, not joinit");
+    }
     }
 
 
@@ -182,14 +181,16 @@ class Cable extends Sprite {
         this.World.clearForces ();
         this.World.drawDebugData ();
 
+        var bodyA = segments[1].body;
         var pforce = 512;
-        segments[0].body.applyForce(new B2Vec2( (this.x + (plugBmp1.width/2) - (segments[0].body.getPosition().x * util.GameWorld.PHYSICS_SCALER)) * pforce , ( (this.y + (plugBmp1.height/2)) - (segments[0].body.getPosition().y * util.GameWorld.PHYSICS_SCALER))*pforce), new B2Vec2(0,0));
-
+        bodyA.applyForce(new B2Vec2( (this.x + (plugBmp1.width/2) - (bodyA.getPosition().x * util.GameWorld.PHYSICS_SCALER)) * pforce , ( (this.y + (plugBmp1.height/2)) - (bodyA.getPosition().y * util.GameWorld.PHYSICS_SCALER))*pforce), new B2Vec2(0,0));
 
         for (i in 0...segments.length )
         {
 
             var myBody = segments[i];
+
+            if ( myBody.body != null) {
 
             if(myBody.body.getUserData() != null && Std.is(cast(myBody.body.getUserData(), Bitmap), Bitmap))
             {
@@ -198,7 +199,7 @@ class Cable extends Sprite {
 
                 myBody.x = myBody.body.getPosition().x * util.GameWorld.PHYSICS_SCALER - x; // - (this.thickness*2);
                 myBody.y = myBody.body.getPosition().y * util.GameWorld.PHYSICS_SCALER - y; // - (this.thickness*2);
-                //myBody.body.getUserData().rotation = myBody.body.getAngle();
+                myBody.body.getUserData().rotation = myBody.body.getAngle();
 
 
 //                trace("POST image.x: " + myBody.x  + " body.x: " + myBody.body.getPosition().x );
@@ -206,7 +207,36 @@ class Cable extends Sprite {
 //                trace("body.userdata.y " + myBody.body.getUserData().y + " body.y: " + myBody.body.getPosition().y * util.GameWorld.PHYSICS_SCALER);
 
             }
+            }
         }
+
+
+
+
+// apply force to the end segments image ( userData.x)
+        //var bodyA = segments[segments.length-1].body;
+        trace("getting bodyA");
+        var bodyA = segments[segments.length-2].body;
+
+        var targetSprite = segments[segments.length-1];
+        trace("targetSprite.x: " + targetSprite.x);
+        trace("bodyA.getPosition().x: " + bodyA.getPosition().x * util.GameWorld.PHYSICS_SCALER);
+//        trace(bodyA);
+//        trace(bodyB);
+
+        var pforce = 512;
+
+        var targetX = (targetSprite.x  - (bodyA.getPosition().x * util.GameWorld.PHYSICS_SCALER));
+        var targetY = (targetSprite.y -  (bodyA.getPosition().y * util.GameWorld.PHYSICS_SCALER));
+
+        trace ("targetX: " + targetX + " targetY: " + targetY);
+
+
+//bodyB.applyForce(new B2Vec2( (bodyA.getUserData().x + (plugBmp1.width/2) - (bodyB.getPosition().x * util.GameWorld.PHYSICS_SCALER)) * pforce , ( (bodyA.getUserData().y + (plugBmp1.height/2)) - (bodyB.getPosition().y * util.GameWorld.PHYSICS_SCALER))*pforce), new B2Vec2(0,0));
+//        bodyA.applyForce(new B2Vec2( (targetSprite.x + (targetSprite.width/2) - (bodyA.getPosition().x * util.GameWorld.PHYSICS_SCALER)) * pforce , ( (targetSprite.y + (targetSprite.height/2)) - (bodyA.getPosition().y * util.GameWorld.PHYSICS_SCALER))*pforce), new B2Vec2(0,0));
+
+        bodyA.applyForce(new B2Vec2(targetX  * pforce , targetY * pforce), new B2Vec2(0,-1));
+
 
     }
 

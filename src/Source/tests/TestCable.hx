@@ -38,11 +38,13 @@ class TestCable extends Sprite
         util.GameManager.entities.push(vOsc2);
 
         cable1 = new ui.Cable(vOsc1,vOsc2,5,50);
+        cable1.x = 100;
+        cable1.y = 10;
         addChild(cable1);
         trace("cable1.x: " + cable1.x + " cable1.y: " + cable1.y);
 
-        cable2 = new ui.Cable(vOsc1,vOsc2,5,50);
-        addChild(cable2);
+//        cable2 = new ui.Cable(vOsc1,vOsc2,5,50);
+//        addChild(cable2);
 
 
     }

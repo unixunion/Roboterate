@@ -53,15 +53,22 @@ class CableSegment extends Sprite {
         this.moveListener = moveListener;
 
         this.World = world;
-        //trace("got world: " + World);
-        //sprite = image;
         spriteData = image.bitmapData.clone();
         sprite = new Bitmap();
-        sprite.graphics.beginFill(0x000000, 1);
-        sprite.graphics.drawCircle(sprite.x/2,sprite.y/2,thickness);
+        sprite.bitmapData = spriteData;
+        sprite.width = thickness*4;
+        sprite.height = thickness*4;
 
-        trace("x: " + x + " y: " + y);
-        trace("sprite.x: " + sprite.x + " sprite.y: " + sprite.y);
+        // fix sprite position
+        sprite.x = -0.5 * sprite.width;
+        sprite.y = -0.5 * sprite.height;
+
+
+//        sprite.graphics.beginFill(0x000000, 1);
+//        sprite.graphics.drawCircle(sprite.x/2,sprite.y/2,thickness);
+
+//        trace("x: " + x + " y: " + y);
+//        trace("sprite.x: " + sprite.x + " sprite.y: " + sprite.y);
 
 
 //sprite.bitmapData = spriteData;
@@ -80,9 +87,9 @@ class CableSegment extends Sprite {
 //        sprite.y = -100;
         //sprite.x = x/util.GameWorld.PHYSICS_SCALER;
         //sprite.y = y/util.GameWorld.PHYSICS_SCALER;
-        trace("x: " + x + " y: " + y);
-        trace("this.x: " + x + "this.y: " + y);
-        trace("sprite.x: " + x + " sprite.y: " + y);
+//        trace("x: " + x + " y: " + y);
+//        trace("this.x: " + x + "this.y: " + y);
+//        trace("sprite.x: " + x + " sprite.y: " + y);
 
 //        trace("calculated box X: " + (x * util.GameWorld.PHYSICS_SCALE) + " Y: " + ( y * util.GameWorld.PHYSICS_SCALE));
 //        trace("sprite x: " + sprite.x + " y " + sprite.y);
@@ -95,10 +102,11 @@ class CableSegment extends Sprite {
 
     private function construct() {
 
+    if ( ! this.moveListener ) {
         var bodyDefinition = new B2BodyDef ();
         bodyDefinition.type = B2Body.b2_dynamicBody;
         bodyDefinition.position.set (x * util.GameWorld.PHYSICS_SCALE, y * util.GameWorld.PHYSICS_SCALE );
-        bodyDefinition.angularDamping = 1;
+        bodyDefinition.angularDamping = 0;
         bodyDefinition.linearDamping = this.linearDamping;
 
         // create the poly
@@ -112,7 +120,9 @@ class CableSegment extends Sprite {
         // create the fixture
         var fixtureDefinition = new B2FixtureDef ();
         fixtureDefinition.shape = circle;
-        //fixtureDefinition.density=0;
+//        fixtureDefinition.density = 0;
+//        fixtureDefinition.restitution = 0;
+
         //fixtureDefinition.setAsBox ((segmentWidth / 2) * PHYSICS_SCALE, (segmentHeight / 2) * PHYSICS_SCALE);
 
         // add the body to the world
@@ -124,9 +134,18 @@ class CableSegment extends Sprite {
         body.setUserData(sprite);
 
 //        Lib.current.stage.addChild(sprite);
+    } else {
+        trace("creating null body");
+        body = null;
+    }
+
         addChild(sprite);
-        addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
-        addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
+        if ( this.moveListener ) {
+            addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
+        }
+
+        // CableSegments are updated from the parent "Cable" instance.
+        //addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
 
     }
 
@@ -152,6 +171,21 @@ class CableSegment extends Sprite {
 
         this.x = this.x + (targetX - this.x) * 0.5;
         this.y = this.y + (targetY - this.y) * 0.5;
+//
+//        sprite.x = sprite.x + (targetX - sprite.x) * 0.5;
+//        sprite.y = sprite.y + (targetY - sprite.y) * 0.5;
+
+        trace("TargetX:" + targetX);
+        trace("Width: " + this.width);
+
+
+//        var pforce = 32;
+//        trace("applying force");
+//        this.body.applyForce(new B2Vec2( (targetX + (this.width/2) - (this.body.getPosition().x * util.GameWorld.PHYSICS_SCALER)) * pforce , ( (targetY + (this.height/2)) - (this.body.getPosition().y * util.GameWorld.PHYSICS_SCALER))*pforce), new B2Vec2(0,0));
+
+
+//        event.target.x = event.target.x + (targetX - event.target.x) * 0.5;
+//        event.target.y = event.target.y + (targetY - event.target.y) * 0.5;
 
     }
 

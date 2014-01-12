@@ -20,7 +20,7 @@ import box2D.dynamics.B2World;
 class GameWorld extends Sprite {
     public static var PHYSICS_SCALE:Float = 1 / 30;
     public static var PHYSICS_SCALER:Float = 30;
-    public static var World:B2World = new B2World (new B2Vec2 (0, 9), true);
+    public static var World:B2World = new B2World (new B2Vec2 (1, 1), true);
     private var PhysicsDebug:Sprite;
 
     public function new() {
@@ -30,14 +30,14 @@ class GameWorld extends Sprite {
 
         //World = new B2World (new B2Vec2 (0, 0), true);
 
-//        PhysicsDebug = new Sprite ();
-//        addChild(PhysicsDebug);
-//
-//        var debugDraw = new B2DebugDraw ();
-//        debugDraw.setSprite (PhysicsDebug);
-//        debugDraw.setDrawScale (1 / PHYSICS_SCALE);
-//        debugDraw.setFlags (B2DebugDraw.e_shapeBit);
-//        World.setDebugDraw (debugDraw);
+        PhysicsDebug = new Sprite ();
+        addChild(PhysicsDebug);
+
+        var debugDraw = new B2DebugDraw ();
+        debugDraw.setSprite (PhysicsDebug);
+        debugDraw.setDrawScale (1 / PHYSICS_SCALE);
+        debugDraw.setFlags (B2DebugDraw.e_shapeBit);
+        World.setDebugDraw (debugDraw);
 
         createBox(80,400,100,20,false);
 
