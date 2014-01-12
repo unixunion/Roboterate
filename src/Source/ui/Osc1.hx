@@ -1,4 +1,5 @@
 package ui;
+import util.GameManager;
 import motion.Actuate;
 import openfl.Assets;
 import flash.events.MouseEvent;
@@ -113,6 +114,8 @@ class Osc1 extends Sprite
 
     private function this_onMouseDown (event:MouseEvent):Void {
 
+
+
         stage.addEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
         stage.addEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
 
@@ -124,7 +127,7 @@ class Osc1 extends Sprite
 
     private function stage_onMouseMove (event:MouseEvent):Void {
 
-        //Actuate.tween (this, 0.4
+        // move the screen, also remember to update connected wires!
         Actuate.tween (this, 0.4, { alpha: 1 });
 
         var targetX = event.stageX + dragOffsetX;
@@ -137,6 +140,14 @@ class Osc1 extends Sprite
 
 
     private function stage_onMouseUp (event:MouseEvent):Void {
+
+        for (i in util.GameManager.entities) {
+
+            if (i.hitTestPoint (event.stageX, event.stageY) && i != this ) {
+                trace("Connect to: " + i);
+                //Actuate.tween (Logo, 1, { x: Destination.x + 5, y: Destination.y + 5 } );
+            }
+        }
 
         stage.removeEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
         stage.removeEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);

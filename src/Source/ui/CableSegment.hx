@@ -1,5 +1,6 @@
 package ui;
 
+import util.GameManager;
 import flash.Lib;
 import tests.TestCable;
 import flash.display.BitmapData;
@@ -31,7 +32,7 @@ class CableSegment extends Sprite {
     private var dragOffsetX:Float;
 
     private var PhysicsDebug:Sprite;
-    private var gameWorld:B2World;
+    private var World:B2World;
 
     private static var segmentWidth:Int = 4;
     private static var segmentHeight:Int = 20;
@@ -51,16 +52,25 @@ class CableSegment extends Sprite {
         this.linearDamping = linearDamping;
         this.moveListener = moveListener;
 
-        gameWorld = world;
-        trace("got world: " + gameWorld);
+        this.World = world;
+        //trace("got world: " + World);
         //sprite = image;
         spriteData = image.bitmapData.clone();
         sprite = new Bitmap();
-        sprite.bitmapData = spriteData;
-        sprite.width = thickness*4;
-        sprite.height = thickness*4;
+        sprite.graphics.beginFill(0x000000, 1);
+        sprite.graphics.drawCircle(sprite.x/2,sprite.y/2,thickness);
+
+        trace("x: " + x + " y: " + y);
+        trace("sprite.x: " + sprite.x + " sprite.y: " + sprite.y);
+
+
+//sprite.bitmapData = spriteData;
+//        sprite.width = thickness*4;
+//        sprite.height = thickness*4;
         //sprite = new Bitmap(Assets.getBitmapData("images/reddot.png"));
         //Lib.current.stage.addChild(sprite);
+        //buttonMode = true;
+        //sprite.addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
         initialize();
         construct();
     }
@@ -70,9 +80,12 @@ class CableSegment extends Sprite {
 //        sprite.y = -100;
         //sprite.x = x/util.GameWorld.PHYSICS_SCALER;
         //sprite.y = y/util.GameWorld.PHYSICS_SCALER;
-        trace("init segment: x " + x + " y " + y);
-        trace("calculated box X: " + (x * util.GameWorld.PHYSICS_SCALE) + " Y: " + ( y * util.GameWorld.PHYSICS_SCALE));
-        trace("sprite x: " + sprite.x + " y " + sprite.y);
+        trace("x: " + x + " y: " + y);
+        trace("this.x: " + x + "this.y: " + y);
+        trace("sprite.x: " + x + " sprite.y: " + y);
+
+//        trace("calculated box X: " + (x * util.GameWorld.PHYSICS_SCALE) + " Y: " + ( y * util.GameWorld.PHYSICS_SCALE));
+//        trace("sprite x: " + sprite.x + " y " + sprite.y);
         // load assets
 //        sprite = new Bitmap(Assets.getBitmapData("images/reddot.png"));
 //        addChild(sprite);
@@ -99,7 +112,7 @@ class CableSegment extends Sprite {
         // create the fixture
         var fixtureDefinition = new B2FixtureDef ();
         fixtureDefinition.shape = circle;
-        fixtureDefinition.density=0;
+        //fixtureDefinition.density=0;
         //fixtureDefinition.setAsBox ((segmentWidth / 2) * PHYSICS_SCALE, (segmentHeight / 2) * PHYSICS_SCALE);
 
         // add the body to the world
@@ -109,11 +122,78 @@ class CableSegment extends Sprite {
         // add the sprite
 
         body.setUserData(sprite);
-        //sprite.addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
-        Lib.current.stage.addChild(sprite);
-        //addChild(sprite);
+
+//        Lib.current.stage.addChild(sprite);
+        addChild(sprite);
+        addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
+        addEventListener (Event.ENTER_FRAME, this_onEnterFrame);
+
+    }
+
+    private function this_onMouseDown (event:MouseEvent):Void {
+
+        trace("mousedown " + event.target);
+
+        stage.addEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
+        stage.addEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
+
+        dragOffsetX = event.target.x - event.stageX;
+        dragOffsetY = event.target.y - event.stageY;
+
+    }
 
 
+    private function stage_onMouseMove (event:MouseEvent):Void {
+
+        Actuate.tween (this, 0.4, { alpha: 1 });
+
+        var targetX = event.stageX + dragOffsetX;
+        var targetY = event.stageY + dragOffsetY;
+
+        this.x = this.x + (targetX - this.x) * 0.5;
+        this.y = this.y + (targetY - this.y) * 0.5;
+
+    }
+
+
+    private function stage_onMouseUp (event:MouseEvent):Void {
+
+// hit testing for drop event
+        for (i in util.GameManager.entities) {
+
+            if (i.hitTestPoint (event.stageX, event.stageY)) {
+                trace("Connect to: " + i);
+                Actuate.tween (this, 1, { x: i.x+i.width-i.width/4, y: i.y + i.height/4 } );
+            }
+
+        }
+
+        stage.removeEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
+        stage.removeEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
+
+    }
+
+
+    private function this_onEnterFrame (event:Event):Void {
+
+//        trace("x: " + x + " y: " + y);
+//        trace("this.x: " + x + "this.y: " + y);
+//        trace("sprite.x: " + x + " sprite.y: " + y);
+//        this.World.step (1 / 30, 10, 10);
+//        this.World.clearForces ();
+//        this.World.drawDebugData ();
+//
+//            var myBody = this.body;
+//
+//            if(myBody.getUserData() != null && Std.is(cast(myBody.getUserData(), Bitmap), Bitmap))
+//            {
+//                trace("sprite x: " + myBody.getUserData().x + " body x: " + myBody.getPosition().x );
+//                myBody.getUserData().x = myBody.getPosition().x * util.GameWorld.PHYSICS_SCALER;
+//                myBody.getUserData().y = myBody.getPosition().y * util.GameWorld.PHYSICS_SCALER;
+//                myBody.getUserData().rotation = myBody.getAngle();
+//
+//
+//            }
 
     }
 
