@@ -6,9 +6,9 @@
     <window width="960" height="480" fps="30" resizable="true" />
     <source path="Source" />
 
-    <haxelib name="openfl" />
-    <haxelib name="actuate" />
-    <haxelib name="box2d" />
+    <!--<haxelib name="openfl" />-->
+    <!--<haxelib name="actuate" />-->
+    <haxelib name="flixel" />
 
 
     <!-- <ndll name="nme" haxelib="nme" /> -->

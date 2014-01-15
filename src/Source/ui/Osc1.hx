@@ -1,4 +1,8 @@
 package ui;
+import interfaces.InPlug;
+import interfaces.PlugSocket;
+import interfaces.Plug;
+import util.DraggableGameObject;
 import util.GameManager;
 import motion.Actuate;
 import openfl.Assets;
@@ -24,8 +28,7 @@ import flash.display.LineScaleMode;
 //  plotLineThickness: Int, the thickness of plotter lines, max 2 recommended.
 //  bars:Bool, draw bar lines down to the center axis!
 
-class Osc1 extends Sprite
-{
+class Osc1 extends DraggableGameObject implements Plug {
     private static var bgColor:Int = 0x00FFFFFF;
     private static var gridColor:Int = 0x55555555;
     private static var plotColor:Int = 0x20F75A; //0x78C5F5;
@@ -53,8 +56,8 @@ class Osc1 extends Sprite
     private var lastPlotPixel:Float = 0;
 
     // drag / drop stuff
-    private var dragOffsetX:Float;
-    private var dragOffsetY:Float;
+//    private var dragOffsetX:Float;
+//    private var dragOffsetY:Float;
 
     public function new(x:Int, y:Int, size:Int, ?curve:Bool=true, ?scrollRate=-0.1, ?plotLineThickness=2, ?bars=false)
     {
@@ -112,47 +115,47 @@ class Osc1 extends Sprite
         addEventListener (MouseEvent.MOUSE_DOWN, this_onMouseDown);
     }
 
-    private function this_onMouseDown (event:MouseEvent):Void {
-
-
-
-        stage.addEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
-        stage.addEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
-
-        dragOffsetX = this.x - event.stageX;
-        dragOffsetY = this.y - event.stageY;
-
-    }
-
-
-    private function stage_onMouseMove (event:MouseEvent):Void {
-
-        // move the screen, also remember to update connected wires!
-        Actuate.tween (this, 0.4, { alpha: 1 });
-
-        var targetX = event.stageX + dragOffsetX;
-        var targetY = event.stageY + dragOffsetY;
-
-        this.x = this.x + (targetX - this.x) * 0.5;
-        this.y = this.y + (targetY - this.y) * 0.5;
-
-    }
-
-
-    private function stage_onMouseUp (event:MouseEvent):Void {
-
-        for (i in util.GameManager.entities) {
-
-            if (i.hitTestPoint (event.stageX, event.stageY) && i != this ) {
-                trace("Connect to: " + i);
-                //Actuate.tween (Logo, 1, { x: Destination.x + 5, y: Destination.y + 5 } );
-            }
-        }
-
-        stage.removeEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
-        stage.removeEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
-
-    }
+//    private function this_onMouseDown (event:MouseEvent):Void {
+//
+//
+//
+//        stage.addEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
+//        stage.addEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
+//
+//        dragOffsetX = this.x - event.stageX;
+//        dragOffsetY = this.y - event.stageY;
+//
+//    }
+//
+//
+//    private function stage_onMouseMove (event:MouseEvent):Void {
+//
+//        // move the screen, also remember to update connected wires!
+//        Actuate.tween (this, 0.4, { alpha: 1 });
+//
+//        var targetX = event.stageX + dragOffsetX;
+//        var targetY = event.stageY + dragOffsetY;
+//
+//        this.x = this.x + (targetX - this.x) * 0.5;
+//        this.y = this.y + (targetY - this.y) * 0.5;
+//
+//    }
+//
+//
+//    private function stage_onMouseUp (event:MouseEvent):Void {
+//
+//        for (i in util.GameManager.entities) {
+//
+//            if (i.hitTestPoint (event.stageX, event.stageY) && i != this ) {
+//                trace("Connect to: " + i);
+//                //Actuate.tween (Logo, 1, { x: Destination.x + 5, y: Destination.y + 5 } );
+//            }
+//        }
+//
+//        stage.removeEventListener (MouseEvent.MOUSE_MOVE, stage_onMouseMove);
+//        stage.removeEventListener (MouseEvent.MOUSE_UP, stage_onMouseUp);
+//
+//    }
 
     private function this_onEnterFrame (event:Event):Void
     {

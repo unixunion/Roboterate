@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+    <meta title="TestNape" package="com.deblox.implantsout" version="1.0.0" company="iogame" />
+    <app main="tests.TestNape" path="Export" file="testnape" />
+    <window width="960" height="480" fps="30" resizable="true" />
+    <source path="Source" />
+
+    <haxelib name="openfl" />
+    <haxelib name="actuate" />
+    <haxelib name="nape" />
+
+
+    <!-- <ndll name="nme" haxelib="nme" /> -->
+
+    <assets path="Assets/fonts" rename="fonts" />
+    <assets path="Assets/images" rename="images" exclude="openfl.svg" />
+    <icon path="Assets/openfl.svg" />
+
+    <!--     <assets path="Assets/sounds" rename="sounds" if="web">
+                <sound path="3.mp3" id="sound3" />
+                <sound path="4.mp3" id="sound4" />
+                <sound path="5.mp3" id="sound5" />
+                <music path="theme.mp3" id="soundTheme" />
+        </assets>
+
+        <assets path="Assets/sounds" rename="sounds" unless="web">
+                <sound path="3.wav" id="sound3" />
+                <sound path="4.wav" id="sound4" />
+                <sound path="5.wav" id="sound5" />
+                <music path="theme.ogg" id="soundTheme" />
+        </assets> -->
+
+</project>
