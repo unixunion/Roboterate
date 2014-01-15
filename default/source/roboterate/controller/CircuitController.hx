@@ -1,6 +1,8 @@
 package roboterate.controller;
 
-import flixel.FlxG;
+import roboterate.interfaces.IController;
+import roboterate.models.Model;
+
 class CircuitController implements IController
 {
     private var model:Model;
@@ -9,16 +11,16 @@ class CircuitController implements IController
         this.model = model;
     }
 
-    public function update(id:String, index:UInt, value:Float):Void{
+    public function update(resource:String, value:Float, requestor:String):Void{
 
-        switch(id){
-            case 'power':{
-                FlxG.log("power update");
-                model.update(id, index, value*value);
+        switch(resource){
+            case 'power_request':{
+                trace("power update");
+                model.update(resource, value, requestor);
             }
             default:{
-                FlxG.log("default update");
-                model.update(id, index, value);
+                trace("default update resource: " + resource + " value: " + value + " requestor: " + requestor);
+                model.update(resource, value, requestor);
             }
         }
     }

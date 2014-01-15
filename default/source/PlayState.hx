@@ -1,5 +1,15 @@
 package;
 
+import flixel.addons.plugin.FlxMouseControl;
+import roboterate.ui.CircuitEngine;
+import roboterate.ui.CircuitView;
+import roboterate.interfaces.IController;
+import roboterate.ui.AView;
+import roboterate.controller.CircuitController;
+import roboterate.models.Model;
+
+
+
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
@@ -7,14 +17,14 @@ import flixel.text.FlxText;
 import flixel.ui.FlxButton;
 import flixel.util.FlxMath;
 
-/**
- * A FlxState which can be used for the actual gameplay.
- */
+
 class PlayState extends FlxState
 {
-	/**
-	 * Function that is called up when to state is created to set it up. 
-	 */
+    private var model:Model;
+    private var view:AView;
+    private var controller:IController;
+    private var circuit:AView;
+
 	override public function create():Void
 	{
 		// Set a background color
@@ -23,14 +33,17 @@ class PlayState extends FlxState
 		#if !FLX_NO_MOUSE
 		FlxG.mouse.show();
 		#end
-		
+        FlxG.plugins.add(new FlxMouseControl());
 		super.create();
+
+        model = new Model();
+        controller = new CircuitController(model);
+        view = new CircuitView(model, controller);
+        circuit = new CircuitEngine(model, controller);
+
 	}
 	
-	/**
-	 * Function that is called when this state is destroyed - you might want to 
-	 * consider setting all objects this state uses to null to help garbage collection.
-	 */
+
 	override public function destroy():Void
 	{
 		super.destroy();

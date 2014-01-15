@@ -1,16 +1,13 @@
 package roboterate.models;
 
 import roboterate.interfaces.IPowerInput;
-import roboterate.ui.TestPlug;
 import flixel.FlxState;
 import flixel.util.FlxPoint;
 import flixel.FlxG;
-import motion.Actuate;
 import flixel.addons.display.FlxExtendedSprite;
 import flixel.FlxSprite;
 import roboterate.controller.Register;
 import flash.events.MouseEvent;
-import flixel.plugin.MouseEventManager;
 import flixel.addons.display.FlxExtendedSprite;
 
 

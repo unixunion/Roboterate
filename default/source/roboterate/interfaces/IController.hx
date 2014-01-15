@@ -1,5 +1,5 @@
-
+package roboterate.interfaces;
 
 interface IController {
-    function update(id:String, index:UInt, value:Float):Void;
+    function update(id:String, value:Float, requestor:String):Void;
 }

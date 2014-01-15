@@ -1,5 +1,8 @@
-import roboterate.models.PowerGrid;
-import roboterate.ui.Cpu;
+package roboterate.ui;
+
+import roboterate.ui.ProcessingUnit;
+import roboterate.interfaces.IController;
+import roboterate.models.Model;
 import flixel.FlxSprite;
 import flixel.FlxG;
 import flash.events.Event;
@@ -7,12 +10,15 @@ import flash.events.Event;
 class CircuitView extends AView {
 
     private var image:FlxSprite;
-    private var cpu:Model;
-    private var powerGrid:Model;
+
+    // components within this circuit
+    private var proccessingUnits:Array<ProcessingUnit>;
+    private var powerUnits:Array<PowerUnit>;
+//    private var powerGrid:Model;
 
     public function new(model:Model, controller:IController )
     {
-        super();
+        super(10,10);
         this.model      = model;
         this.controller = controller;
 
@@ -23,26 +29,31 @@ class CircuitView extends AView {
         image.y = 100;
 
 
-        // cpu
-        this.cpu = new Cpu()
-
+        // components in the circuit are in arrays
+        this.proccessingUnits = new Array<ProcessingUnit>();
+        this.powerUnits = new Array<PowerUnit>();
+        this.proccessingUnits.push(new ProcessingUnit("cpu", model, controller));
+        this.powerUnits.push(new PowerUnit("psu", model, controller));
 
         FlxG.stage.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
-        FlxG.stage.addEventListener(Event.ENTER_FRAME, run);
+//        FlxG.stage.addEventListener(Event.ENTER_FRAME, run);
     }
 
 
     override public function onAddedToStage(e:Event){
-        FlxG.log("adding to stage");
+        trace("adding to stage");
         FlxG.stage.removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
     }
 
     // call the psu, cpu, cooler and make them all do their thing be it
     // generating power or consuming power / cooling.
 
-    private function run(play:Bool):Void{
-        controller.update('play', 0, play? 1.0:0.0);
-    }
+//    private function run(e:Event) : Void
+//    {
+//        for ( i in 0...this.proccessingUnits.length) {
+//            i.cont
+//        }
+//    }
 
 
 
