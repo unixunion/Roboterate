@@ -24,6 +24,7 @@
     <haxelib name="task"/>
     <haxelib name="firetongue"/>
     <haxelib name="actuate"/>
+    <haxelib name="bbmvc"/>
 
     <!--In case you want to use the addons package-->
 	<!--<haxelib name="flixel-addons" />-->
