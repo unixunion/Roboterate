@@ -1,7 +1,7 @@
 package roboterate.ui;
 
-import roboterate.models.Power;
 import flash.events.Event;
+import roboterate.models.Power;
 import flixel.FlxG;
 import roboterate.interfaces.IController;
 import roboterate.models.Model;

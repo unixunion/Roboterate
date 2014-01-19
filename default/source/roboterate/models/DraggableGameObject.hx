@@ -1,6 +1,7 @@
 package roboterate.models;
 
-import roboterate.interfaces.IPowerInput;
+import flixel.plugin.MouseEventManager;
+import flash.events.MouseEvent;
 import flixel.FlxState;
 import flixel.util.FlxPoint;
 import flixel.FlxG;
@@ -14,8 +15,8 @@ import flixel.addons.display.FlxExtendedSprite;
 
 class DraggableGameObject extends FlxExtendedSprite {
 
-    private var dragOffsetY:Float;
-    private var dragOffsetX:Float;
+//    private var dragOffsetY:Float;
+//    private var dragOffsetX:Float;
     private var currentTarget:Dynamic;
     public var dragging:Bool = false;
     public var child:Array<FlxSprite>;
@@ -25,10 +26,13 @@ class DraggableGameObject extends FlxExtendedSprite {
         Register.entities.push(this);
         trace(Register.entities);
         this.enableMouseDrag(true, false, 128);
+
         mouseReleasedCallback = onRelease;
         this.child = new Array<FlxSprite>();
-//        MouseEventManager.addSprite(this, onMouseDown, onMouseUp, onMouseOver, onMouseOut);
-//        FlxG.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown, onMouseUp);
+
+
+//        MouseEventManager.addSprite(this, onMouseDown, onMouseUp, onMouseMove, onMouseOut);
+//        FlxG.stage.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 
     }
 
@@ -38,7 +42,7 @@ class DraggableGameObject extends FlxExtendedSprite {
         FlxG.state.add(sprite);
     }
 
-    public override function update():Void {
+    override public function update():Void {
 
         // TODO FIXME MOUSE DRAG OFFSET!
 
@@ -90,6 +94,7 @@ class DraggableGameObject extends FlxExtendedSprite {
 //        stage.addEventListener (MouseEvent.MOUSE_MOVE, onMouseMove);
 //        stage.addEventListener (MouseEvent.MOUSE_UP, onMouseUp);
 //
+        trace(currentTarget);
 //        dragOffsetX = event.target.x - event.stageX;
 //        dragOffsetY = event.target.y - event.stageY;
 
@@ -147,13 +152,14 @@ class DraggableGameObject extends FlxExtendedSprite {
     private function onRelease (obj:FlxExtendedSprite, x:Int, y:Int): Void {
         trace("mouse release: " + obj);
         for (target in Register.entities ) {
-            if (FlxG.overlap(this, target) && Std.is(IPowerInput, target)) {
-                if (target.plugged_object == null ) {
-                    target.plugged_object=this;
-                } else {
-                    trace("Socket already occupied!");
-                }
-            }
+            trace("check target");
+//            if (FlxG.overlap(this, target) && Std.is(IPowerInput, target)) {
+//                if (target.plugged_object == null ) {
+//                    target.plugged_object=this;
+//                } else {
+//                    trace("Socket already occupied!");
+//                }
+//            }
         }
     }
 

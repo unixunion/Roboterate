@@ -14,12 +14,14 @@ class Model extends EventDispatcher {
     // value = amount of resource required
     public function update( resource:String, value:Float, requestor:String):Void{
         switch(resource){
-            case 'power':{
-                trace("Dispatching power event id: " + resource + " requestor " + requestor + " value " + value);
+            case 'disconnect':{
+                trace("Disconnecting "+ requestor);
                 dispatchEvent(new Power(resource, value, requestor));
             }
 
-            default:
+            default: {
+                trace("default update resource: " + resource + " value: " + value + " requestor: " + requestor);
+            }
         }
     }
 

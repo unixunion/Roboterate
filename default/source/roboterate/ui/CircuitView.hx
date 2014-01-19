@@ -35,26 +35,13 @@ class CircuitView extends AView {
         this.proccessingUnits.push(new ProcessingUnit("cpu", model, controller));
         this.powerUnits.push(new PowerUnit("psu", model, controller));
 
-        FlxG.stage.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
-//        FlxG.stage.addEventListener(Event.ENTER_FRAME, run);
-    }
 
+        FlxG.stage.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
+    }
 
     override public function onAddedToStage(e:Event){
         trace("adding to stage");
         FlxG.stage.removeEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
     }
-
-    // call the psu, cpu, cooler and make them all do their thing be it
-    // generating power or consuming power / cooling.
-
-//    private function run(e:Event) : Void
-//    {
-//        for ( i in 0...this.proccessingUnits.length) {
-//            i.cont
-//        }
-//    }
-
-
 
 }
